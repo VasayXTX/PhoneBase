@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="/assets/stylesheets/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="/assets/stylesheets/bootstrap-responsive.min.css">
+	<link rel="stylesheet" type="text/css" href="/assets/stylesheets/style.css">
+	<title>TelBase as testing application</title>
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+		  	<div class="span4">
+		  		<ul id="controls">
+		  			<li id="btn-create-new-contact" class="btn btn-success">Create</li>
+		  			<li id="btn-delete-contacts" class="btn btn-danger">Delete</li>
+		  		</ul>
+		  		<ul id="contacts-list">
+		  			<li>
+		  				<div class="contact-checkbox-place"><input type="checkbox" value></div>
+		  				<a class="contact-list-item" href="#">Иванов Иван Иванович</a>
+		  			</li>
+		  		</ul>
+		  	</div>
+		  	<div class="span4">
+		  		<form id="editing-form">
+					<legend>Редактирование</legend>
+	  				<div>
+				  		<label>Фамилия</label>
+				  		<input type="text" placeholder="Фамилия">
+	  				</div>
+	  				<div>
+				  		<label>Имя</label>
+				  		<input type="text" placeholder="Имя">
+	  				</div>
+	  				<div>
+				  		<label>Отчество</label>
+				  		<input type="text" placeholder="Отчество">
+	  				</div>
+	  				<div>
+				  		<label>Телефонный номер</label>
+				  		<input type="text" placeholder="Телефонный номер">
+	  				</div>
+				  	<div>
+				  		<button type="submit" class="btn btn-primary">Создать</button>
+				  	</div>
+				</form>
+		  	</div>
+		</div>
+	</div>
+
+	<script src="/assets/javascripts/jquery-1.8.2.min.js"></script>
+	<script src="/assets/javascripts/bootstrap.min.js"></script>
+	<script src="/assets/javascripts/spine.js"></script>
+	<script src="/assets/javascripts/underscore-min.js"></script>
+	<script src="/assets/javascripts/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+a:hover {
+	text-decoration: none;
+}
+
+.container {
+	width: 770px;
+	margin-top: 50px;
+}
+
+#btn-delete-contacts{
+	margin-left: 20px;
+}
+
+#contacts-list {
+	list-style-type: none;
+}
+
+#contacts-list li {
+	height: 30px;
+}
+
+.contact-checkbox-place {
+	display: inline-block;
+	width: 22px;
+	border-right: 1px solid #E5E5E5;
+}
+
+.contact-checkbox-place input {
+	margin-top: -2px;
+}
+
+.contact-list-item {
+	display: inline-block;
+	line-height: 30px;
+	margin-left: 5px;
+}

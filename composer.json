@@ -1,0 +1,9 @@
+{
+    "require": {
+        "php-activerecord/php-activerecord": "dev-master",
+	 	"twig/twig": "dev-master",
+        "twig/extensions": "dev-master",
+        "slim/slim": "dev-master",
+        "slim/extras": "dev-master"
+    }
+}
