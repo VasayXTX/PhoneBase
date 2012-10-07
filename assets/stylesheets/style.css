@@ -17,12 +17,13 @@ a:hover {
 
 #contacts-list li {
 	height: 30px;
+	border-bottom: 1px solid #E5E5E5;
+	border-right: 1px solid #E5E5E5;
 }
 
 .contact-checkbox-place {
 	display: inline-block;
 	width: 22px;
-	border-right: 1px solid #E5E5E5;
 }
 
 .contact-checkbox-place input {
@@ -32,5 +33,15 @@ a:hover {
 .contact-list-item {
 	display: inline-block;
 	line-height: 30px;
-	margin-left: 5px;
+	margin-left: 0px;
+	padding-left: 5px;
+	border-left: 1px solid #E5E5E5;
+}
+
+#contact-form {
+	display: none;
+}
+
+#contacts-list-place {
+	/*border-right: 1px solid #E5E5E5;*/
 }

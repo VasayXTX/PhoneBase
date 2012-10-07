@@ -25,7 +25,8 @@ class BadRequestException extends ErrorException {};
 
 class AjaxHandler {
     private static $cmd_routes = array(
-        'getAllData'     => 'get_all_data',
+        'getResources'   => 'get_resources',
+        'getContacts'    => 'get_contacts',
         'deleteContacts' => 'delete_contacts',
         'createContact'  => 'create_contact',
         'updateContact'  => 'update_contact'
@@ -48,30 +49,47 @@ class AjaxHandler {
         return json_encode($response);
     }
 
-    private function get_all_data() {
-        // TODO: Order records
-        $model_to_arr = function($model_name) {
-            $model_objects = $model_name::all();
-            return array_map(function($m_obj) {
-                return $m_obj->to_array();
-            }, $model_objects);
-        };
+    private function select_arr($model_name, $order_sequence) {
+        $model_objects = $model_name::find('all', array('order' => $order_sequence));
+        return array_map(function($m_obj) {
+            return $m_obj->to_array();
+        }, $model_objects);
+    }
+
+    // ----- Actions -----
+
+    private function get_resources() {
+        $order = 'name asc';
         return array(
-            'contacts' => $model_to_arr('Contact'),
-            'cities'   => $model_to_arr('City'),
-            'streets'  => $model_to_arr('Street')
+            'cities'  => $this->select_arr('City', $order),
+            'streets' => $this->select_arr('Street', $order),
         );
     }
 
-    private function create_contact($contact) {
+    private function get_contacts() {
+        $order_sequence = 'last_name asc, first_name asc, second_name asc';
+        return array('contacts' => $this->select_arr('Contact', $order_sequence));
+    }
+
+    private function create_contact($request) {
+        Contact::create($request['contact']);
         return array();
     }
 
-    private function update_contact($contact) {
+    private function update_contact($request) {
+        $contact = Contact::find($request['contact']['id']);
+        if (isset($request['contact']['street_id']) || empty($request['contact']['street_id'])) {
+            $request['contact']['street_id'] = null;
+        }
+        $contact->update_attributes($request['contact']);
         return array();
     }
 
-    private function delete_contacts($contact_ids) {
+    private function delete_contacts($request) {
+        foreach ($request['contacts'] as $contact_id) {
+            $contact = Contact::find($contact_id);
+            $contact->delete();
+        }
         return array();
     }
 }
@@ -84,11 +102,7 @@ $app->get('/', function() use ($app) {
     ));
 });
 
-$app->get('/about', function() {
-    echo 'about';
-});
-
-$app->post('/ajax', function() use ($app) {
+$app->post('/', function() use ($app) {
     $req = $app->request()->post('request');
     $ajax_handler = new AjaxHandler();
     echo $ajax_handler->handle_request($req);
