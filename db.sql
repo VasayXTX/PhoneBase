@@ -1,0 +1,26 @@
+PRAGMA foreign_keys = ON;
+
+DROP TABLE IF EXISTS people;
+CREATE TABLE people(
+	id INTEGER NOT NULL PRIMARY KEY,
+	first_name TEXT NOT NULL,
+	last_name TEXT NOT NULL,
+	second_name TEXT,
+	phone_number TEXT,
+	street_id INTEGER,
+	FOREIGN KEY(street_id) REFERENCES streets(id) ON UPDATE NO ACTION ON DELETE SET NULL
+);
+
+DROP TABLE IF EXISTS cities;
+CREATE TABLE cities(
+	id INTEGER NOT NULL PRIMARY KEY,
+	name TEXT NOT NULL
+);
+
+DROP TABLE IF EXISTS streets;
+CREATE TABLE streets(
+	id INTEGER NOT NULL PRIMARY KEY,
+	name TEXT NOT NULL,
+	city_id INTEGER,
+	FOREIGN KEY(city_id) REFERENCES cities(id) ON UPDATE NO ACTION ON DELETE CASCADE
+);
