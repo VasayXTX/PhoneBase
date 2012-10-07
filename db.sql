@@ -1,7 +1,7 @@
 PRAGMA foreign_keys = ON;
 
-DROP TABLE IF EXISTS people;
-CREATE TABLE people(
+DROP TABLE IF EXISTS contacts;
+CREATE TABLE contacts(
 	id INTEGER NOT NULL PRIMARY KEY,
 	first_name TEXT NOT NULL,
 	last_name TEXT NOT NULL,

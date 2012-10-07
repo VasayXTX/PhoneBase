@@ -50,7 +50,7 @@
 		}
 	],
 
-	"persons": [
+	"contacts": [
 		{
 			"firstName": "Иван",
 			"secondName": "Иванович",

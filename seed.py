@@ -17,10 +17,10 @@ def insert_cities(cursor, cities):
 			cursor.execute(
 				sql.format(street['id'], street['name'], city_id))
 			
-def insert_persons(cursor, persons):
-	for person in persons:
+def insert_contacts(cursor, contacts):
+	for contact in contacts:
 		sql = u'''
-			INSERT INTO people(
+			INSERT INTO contacts(
 				first_name,
 				last_name,
 				second_name,
@@ -28,11 +28,11 @@ def insert_persons(cursor, persons):
 				street_id
 			) VALUES ("{0}", "{1}", "{2}", "{3}", {4})'''
 		cursor.execute(sql.format(
-			person['firstName'],
-			person['lastName'],
-			person['secondName'],
-			person['phoneNumber'],
-			person['streetId']))
+			contact['firstName'],
+			contact['lastName'],
+			contact['secondName'],
+			contact['phoneNumber'],
+			contact['streetId']))
 
 
 if __name__ == '__main__':
@@ -41,7 +41,7 @@ if __name__ == '__main__':
 	cursor = conn.cursor()
 
 	insert_cities(cursor, fixtures['cities'])
-	insert_persons(cursor, fixtures['persons'])
+	insert_contacts(cursor, fixtures['contacts'])
 
 	conn.commit()
 	conn.close()
