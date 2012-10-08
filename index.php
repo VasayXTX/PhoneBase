@@ -87,16 +87,7 @@ class AjaxHandler {
             $req_contact['street_id'] = null;
         }
         $contact = Contact::create($req_contact);
-        if ($contact->is_invalid()) {
-            $a = array('first_name', 'second_name', 'last_name', 'phone_number');
-            $errs = array();
-            foreach ($a as $fld) {
-                if ($contact->errors->on($fld) !== null) {
-                    $errs[$fld] = $contact->errors->on($fld);
-                }
-            }
-            throw new BadContactException($errs);
-        }
+        $this->check_contact($contact);
         return array();
     }
 
@@ -107,6 +98,8 @@ class AjaxHandler {
         }
         $contact = Contact::find($req_contact['id']);
         $contact->update_attributes($req_contact);
+        $contact->save();
+        $this->check_contact($contact);
         return array();
     }
 
@@ -117,6 +110,18 @@ class AjaxHandler {
             $contact->delete();
         }
         return array();
+    }
+
+    private function check_contact($contact) {
+        if ($contact->is_valid()) return;
+        $a = array('first_name', 'second_name', 'last_name', 'phone_number');
+        $errs = array();
+        foreach ($a as $fld) {
+            if ($contact->errors->on($fld) !== null) {
+                $errs[$fld] = $contact->errors->on($fld);
+            }
+        }
+        throw new BadContactException($errs);
     }
 }
 

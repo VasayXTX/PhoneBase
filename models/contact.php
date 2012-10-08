@@ -8,7 +8,7 @@ class Contact extends ActiveRecord\Model {
 	);
 
 	static $validates_numericality_of = array(
-		array('phone_number', 'only_integer' => true, 'message' => 'ожет содержать только цифры')
+		array('phone_number', 'only_integer' => true, 'message' => 'может содержать только цифры')
 	);
 }
 
