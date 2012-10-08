@@ -23,6 +23,12 @@ $app = new \Slim\Slim(array(
 
 class BadRequestException extends ErrorException {};
 
+class BadContactException extends ErrorException {
+    private $errs;
+    public function __construct($errs) { $this->errs = $errs; }
+    public function get_errs() { return $this->errs; }
+};
+
 class AjaxHandler {
     private static $cmd_routes = array(
         'getResources'   => 'get_resources',
@@ -43,8 +49,12 @@ class AjaxHandler {
             $response = array_merge($response, call_user_func(array($this, $handler), $request));
         }
         catch (BadRequestException $ex) {
-            $response['status'] = 'error';
+            $response['status'] = 'requestError';
             $response['message'] = $ex->getMessage();
+        }
+        catch (BadContactException $ex) {
+            $response['status'] = 'badContact';
+            $response['messages'] = $ex->get_errs();
         }
         return json_encode($response);
     }
@@ -72,20 +82,36 @@ class AjaxHandler {
     }
 
     private function create_contact($request) {
-        Contact::create($request['contact']);
+        $req_contact =& $request['contact'];
+        if (!isset($req_contact['street_id']) || empty($req_contact['street_id'])) {
+            $req_contact['street_id'] = null;
+        }
+        $contact = Contact::create($req_contact);
+        if ($contact->is_invalid()) {
+            $a = array('first_name', 'second_name', 'last_name', 'phone_number');
+            $errs = array();
+            foreach ($a as $fld) {
+                if ($contact->errors->on($fld) !== null) {
+                    $errs[$fld] = $contact->errors->on($fld);
+                }
+            }
+            throw new BadContactException($errs);
+        }
         return array();
     }
 
     private function update_contact($request) {
-        $contact = Contact::find($request['contact']['id']);
-        if (isset($request['contact']['street_id']) || empty($request['contact']['street_id'])) {
-            $request['contact']['street_id'] = null;
+        $req_contact =& $request['contact'];
+        if (!isset($req_contact['street_id']) || empty($req_contact['street_id'])) {
+            $req_contact['street_id'] = null;
         }
-        $contact->update_attributes($request['contact']);
+        $contact = Contact::find($req_contact['id']);
+        $contact->update_attributes($req_contact);
         return array();
     }
 
     private function delete_contacts($request) {
+        if (!isset($request['contacts'])) return array();
         foreach ($request['contacts'] as $contact_id) {
             $contact = Contact::find($contact_id);
             $contact->delete();

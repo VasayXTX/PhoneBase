@@ -46,8 +46,9 @@ Ajax.extend({
 			if (data['status'] === 'ok') {
 				if (_.isFunction(handlerOk)) handlerOk(data);
 			} else {
-				if (_.isFunction(handlerErr)) {
-					handlerErr(data);
+				handlerErr = handlerErr || {};
+				if (_.isFunction(handlerErr[data['status']])) {
+					handlerErr[data['status']](data);
 				} else {
 					// TODO: implement default handler
 				}
@@ -58,7 +59,34 @@ Ajax.extend({
 
 // ------------- Models -------------
 
+
+var OrderedModel = {
+  _init_: function() {
+    this.ordered_arr = [];
+  },
+
+  create: function() {
+    this.ordered_arr.push(arguments[0].id);
+    return Spine.Model.create.apply(this, arguments);
+  },
+
+  deleteAll: function() {
+    this.ordered_arr = [];
+    Spine.Model.destroyAll.apply(this, arguments);
+  },
+
+  getAllOrdered: function() {
+    var res = [];
+    for (var i = 0; i < this.count(); ++i) {
+      res.push(this.find(this.ordered_arr[i]));
+    }
+    return res;
+  }
+};
+
 var Contact = Spine.Model.sub();
+Contact.extend(OrderedModel);
+Contact._init_();
 Contact.configure('Contact',
 	'first_name',
 	'last_name',
@@ -68,9 +96,13 @@ Contact.configure('Contact',
 );
 
 var City = Spine.Model.sub();
+City.extend(OrderedModel);
+City._init_();
 City.configure('City', 'name');
 
 var Street = Spine.Model.sub();
+Street.extend(OrderedModel);
+Street._init_();
 Street.configure('Street', 'name', 'city_id');
 
 // ------------- PageCtrl -------------
@@ -79,6 +111,7 @@ var PageCtrl = Spine.Controller.sub({
 	elements: {
 		'#contacts-list': '$contactsList',
 		'#templ-contact-list-item': '$templContactsListItem',
+		'#btn-delete-contacts': '$btnDelete',
 
 		'#contact-form': '$contactForm',
 		'#inp-last-name': '$inpLastName',
@@ -94,20 +127,30 @@ var PageCtrl = Spine.Controller.sub({
 		'click #btn-create-new-contact': 'showNewForm',
 		'click #btn-delete-contacts': 'deleteContacts',
 		'click .contact-list-item': 'selectContact',
-		'change #select-city': 'changeCity'
+		'change #select-city': 'changeCity',
+		'change #contacts-list input[type="checkbox"]': 'updateDeleteBtnState'
 	},
 
 	init: function(opts) {
-		this.load_resources();
-		this.reload_contacts();
+		var self = this;
+
+		self.load_resources();
+		self.reloadContacts();
 
 		// Init submit event
-		this.$contactForm.on('submit', $.proxy(this.submitContactForm, this));
+		self.$contactForm.on('submit', $.proxy(self.submitContactForm, self));
+
+		// Init focusin events
+		_.each(['LastName', 'FirstName', 'SecondName', 'PhoneNumber'], function(el) {
+			self['$inp' + el].on('focusin', function(event) {
+				$(this).closest('.control-group').removeClass('error');
+				$(this).siblings('.help-inline').empty();
+			});
+		});
 	},
 
 	load_resources: function() {
 		var self = this;
-
 		Ajax.sendRequest(
 			{ cmd: 'getResources' },
 			function(data) {
@@ -117,15 +160,15 @@ var PageCtrl = Spine.Controller.sub({
 		);
 	},
 
-	reload_contacts: function() {
+	reloadContacts: function(callback) {
 		var self = this;
-
 		Ajax.sendRequest(
 			{ cmd: 'getContacts' },
 			function(data) {
 				Contact.deleteAll();
 				Utils.fillModel(Contact, data['contacts']);
 				self.updateContactsList();
+				if (_.isFunction(callback)) callback();
 			}
 		);
 	},
@@ -133,7 +176,7 @@ var PageCtrl = Spine.Controller.sub({
 	updateContactsList: function() {
 		this.$contactsList.templater(
 			this.$templContactsListItem,
-			{ contacts: Contact.all() }
+			{ contacts: Contact.getAllOrdered() }
 		);
 	},
 
@@ -146,6 +189,7 @@ var PageCtrl = Spine.Controller.sub({
 		self.$submitContact.text('Создать');
 
 		// Clean form
+		self.emptyValidateErrs();
 		var a = ['FirstName', 'LastName', 'SecondName', 'PhoneNumber'];
 		_.each(a, function(el) {
 			self['$inp' + el].val('');
@@ -165,10 +209,17 @@ var PageCtrl = Spine.Controller.sub({
 				a.push(self.parseContactId($chbx.closest('li')));
 			}
 		});
+
+		// Hide form, if array for deletion contains edited rec
+		if (_.indexOf(a, self.selectedContactId) !== -1) {
+			self.$contactForm.hide();
+		}
 		
 		Ajax.sendRequest(
 			{ cmd: 'deleteContacts', contacts: a },
-			function(data) { self.reload_contacts(); }
+			function(data) {
+				self.reloadContacts($.proxy(self.updateDeleteBtnState, self));
+			}
 		);
 	},
 
@@ -189,6 +240,7 @@ var PageCtrl = Spine.Controller.sub({
 		self.selectedContactId = this.parseContactId($li);
 		var contact = Contact.find(self.selectedContactId);
 
+		self.emptyValidateErrs();
 		var contactMap = self.getContactMap();
 		for (var field in contactMap) {
 			contactMap[field].val(contact[field]);
@@ -202,6 +254,7 @@ var PageCtrl = Spine.Controller.sub({
 			self.updateSelectCities(Street.find(contact.street_id).city_id);
 			self.updateSelectStreets(contact.street_id);
 		}
+
 	},
 
 	submitContactForm: function(event) {
@@ -210,7 +263,7 @@ var PageCtrl = Spine.Controller.sub({
 		var contactMap = self.getContactMap();
 		var contact = {};
 		for (var field in contactMap) {
-			contact[field] = contactMap[field].val();
+			contact[field] = $.trim(contactMap[field].val());
 		}
 		contact.street_id = Utils.getSelectedIntValue(self.$selectStreets);
 
@@ -222,7 +275,18 @@ var PageCtrl = Spine.Controller.sub({
 
 		Ajax.sendRequest(
 			{ cmd: cmd, contact: contact },
-			function(data) { self.reload_contacts(); }
+			function(data) { self.reloadContacts(); },
+			{
+				badContact: function(data) {
+					var errs = data['messages'];
+					var contactMap = self.getContactMap();
+					for (var fld in errs) {
+						var $inp = contactMap[fld];
+						$inp.closest('.control-group').addClass('error');
+						$inp.siblings('.help-inline').text(errs[fld]);
+					}
+				}
+			}
 		);
 		return false;
 	},
@@ -239,7 +303,7 @@ var PageCtrl = Spine.Controller.sub({
 	updateSelectCities: function(selectedId) {
 		var self = this;
 		self.$selectCities.empty();
-		_.each(City.all(), function(city) {
+		_.each(City.getAllOrdered(), function(city) {
 			self.$selectCities.append('<option value="' + city.id + '">' + city.name + '</option');
 		});
 		Utils.updateSelect(self.$selectCities, selectedId, true);
@@ -257,6 +321,29 @@ var PageCtrl = Spine.Controller.sub({
 
 	changeCity: function(event) {
 		this.updateSelectStreets();
+	},
+
+	emptyValidateErrs: function() {
+		var self = this;
+		_.each(['LastName', 'FirstName', 'SecondName', 'PhoneNumber'], function(el) {
+			var $inp = self['$inp' + el];
+			$inp.closest('.control-group').removeClass('error');
+			$inp.siblings('.help-inline').empty();
+		});
+	},
+
+	updateDeleteBtnState: function() {
+		var self = this;
+		var isNotEmpty = false;
+		var $chbxs = self.$contactsList.find('input[type="checkbox"]');
+		$chbxs.each(function(i, el) {
+			isNotEmpty |= $(el).is(':checked');
+		});
+		if (isNotEmpty) {
+			self.$btnDelete.removeAttr('disabled');
+		} else {
+			self.$btnDelete.attr('disabled', 'disabled');
+		}
 	}
 });
 

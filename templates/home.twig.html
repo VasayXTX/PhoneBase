@@ -13,34 +13,42 @@
 		  	<div class="span4" id="contacts-list-place">
 		  		<ul id="controls">
 		  			<li id="btn-create-new-contact" class="btn btn-success">Create</li>
-		  			<li id="btn-delete-contacts" class="btn btn-danger">Delete</li>
+		  			<li id="btn-delete-contacts" class="btn btn-danger" disabled="disabled">Delete</li>
 		  		</ul>
 		  		<ul id="contacts-list"></ul>
 		  	</div>
 		  	<div class="span4" id="contact-form-place">
+		  		<div id="about">© Vasiliy Tsybenko, <a href="https://github.com/VasayXTX/PhoneBase"><i class="icon-eye-open"></i>&nbsp;github</a>, 2012</div>
+
 		  		<form id="contact-form" action="/" method="post">
 					<legend>Редактирование</legend>
-	  				<div>
+	  				<div class="control-group">
 				  		<label>Фамилия</label>
 				  		<input type="text" placeholder="Фамилия" id="inp-last-name">
+				  		<span class="help-inline"></span>
 	  				</div>
-	  				<div>
+	  				<div class="control-group">
 				  		<label>Имя</label>
 				  		<input type="text" placeholder="Имя" id="inp-first-name">
+				  		<span class="help-inline"></span>
 	  				</div>
-	  				<div>
+	  				<div class="control-group">
 				  		<label>Отчество</label>
-				  		<input type="text" placeholder="Отчество" id="inp-second-name">
+				  		<div class="controls">
+					  		<input type="text" placeholder="Отчество" id="inp-second-name">
+	                		<span class="help-inline"></span>
+	                	</div>
 	  				</div>
-	  				<div>
+	  				<div class="control-group">
 				  		<label>Телефонный номер</label>
-				  		<input type="text" placeholder="Телефонный номер" id="inp-phone-number">
+				  		<input type="tel" placeholder="Телефонный номер" id="inp-phone-number">
+				  		<span class="help-inline"></span>
 	  				</div>
-	  				<div>
+	  				<div class="control-group">
 				  		<label>Город</label>
 				  		<select placeholder="Город" id="select-city"></select>
 	  				</div>
-	  				<div>
+	  				<div class="control-group">
 				  		<label>Улица</label>
 				  		<select placeholder="Улица" id="select-street"></select>
 	  				</div>
